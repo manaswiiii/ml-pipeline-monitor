@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+
+# Data (too large for GitHub)
+data/raw/
+data/processed/
+
+# Models (too large for GitHub)
+models/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
