@@ -13,3 +13,5 @@ models/
 
 # Jupyter checkpoints
 .ipynb_checkpoints/
+anaconda_projects/
+.DS_Store
