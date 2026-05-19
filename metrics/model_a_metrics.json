@@ -1,0 +1,12 @@
+{
+  "model": "logistic_regression",
+  "accuracy": 0.8142,
+  "precision_negative": 0.83,
+  "recall_negative": 0.78,
+  "f1_negative": 0.8,
+  "precision_positive": 0.8,
+  "recall_positive": 0.85,
+  "f1_positive": 0.82,
+  "dataset": "stanfordnlp/sst2",
+  "features": "tfidf_10000_ngram12"
+}
