@@ -6,22 +6,45 @@ from sqlalchemy import create_engine, text
 from datetime import datetime
 from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
 import torch
+from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter, Histogram, Gauge
+import time
 
 app = FastAPI(title="ML Sentiment API")
 
+# Prometheus custom metrics
+PREDICTION_COUNTER = Counter(
+    "predictions_total",
+    "Total predictions made",
+    ["model_version", "sentiment"]
+)
+CONFIDENCE_HISTOGRAM = Histogram(
+    "prediction_confidence",
+    "Confidence scores of predictions",
+    ["model_version"],
+    buckets=[0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99, 1.0]
+)
+TEXT_LENGTH_HISTOGRAM = Histogram(
+    "input_text_length",
+    "Length of input text in words",
+    buckets=[1, 5, 10, 20, 50, 100]
+)
+
+# Auto-instrument all endpoints (latency, request count)
+Instrumentator().instrument(app).expose(app)
+
 base = os.path.expanduser("~/ml-pipeline-monitor")
 
-# Load Model A (Logistic Regression)
+# Load Model A
 model_a = joblib.load(f"{base}/models/model_a_logreg.pkl")
 vectorizer = joblib.load(f"{base}/models/vectorizer.pkl")
 
-# Load Model B (DistilBERT)
+# Load Model B
 tokenizer = DistilBertTokenizer.from_pretrained(f"{base}/models/model_b_distilbert")
 model_b = DistilBertForSequenceClassification.from_pretrained(f"{base}/models/model_b_distilbert")
 model_b.eval()
 
 # Database
-import os
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/mlpipeline")
 engine = create_engine(DATABASE_URL)
 
@@ -52,7 +75,6 @@ def health():
 
 @app.post("/predict")
 def predict(input: str):
-    # A/B test: 50/50 split
     use_model_b = random.random() < 0.5
 
     if use_model_b:
@@ -70,6 +92,11 @@ def predict(input: str):
         model_version = "logistic_regression_v1"
 
     label = "positive" if prediction == 1 else "negative"
+
+    # Track Prometheus metrics
+    PREDICTION_COUNTER.labels(model_version=model_version, sentiment=label).inc()
+    CONFIDENCE_HISTOGRAM.labels(model_version=model_version).observe(float(confidence))
+    TEXT_LENGTH_HISTOGRAM.observe(len(input.split()))
 
     with engine.connect() as conn:
         conn.execute(text("""
