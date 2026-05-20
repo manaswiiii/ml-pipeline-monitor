@@ -21,7 +21,9 @@ model_b = DistilBertForSequenceClassification.from_pretrained(f"{base}/models/mo
 model_b.eval()
 
 # Database
-engine = create_engine("postgresql://localhost/mlpipeline")
+import os
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/mlpipeline")
+engine = create_engine(DATABASE_URL)
 
 with engine.connect() as conn:
     conn.execute(text("""
