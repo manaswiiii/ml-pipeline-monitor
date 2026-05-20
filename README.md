@@ -32,12 +32,19 @@ Request → FastAPI → A/B Router (50/50)
 
 ## Models
 
-| Model | Accuracy | F1 | Training Time |
-|-------|----------|----|---------------|
-| Logistic Regression + TF-IDF | 81.4% | 0.81 | <10 seconds |
-| DistilBERT (fine-tuned) | 91.3% | 0.91 | ~23 min (GPU) |
+| Model | Accuracy | F1 | Avg Confidence | Training Time |
+|-------|----------|----|----------------|---------------|
+| Logistic Regression + TF-IDF | 81.4% | 0.81 | 89.7% | <10 seconds |
+| DistilBERT (fine-tuned) | 91.3% | 0.91 | 99.7% | ~23 min (GPU) |
 
 Dataset: Stanford SST-2 (67,349 training sentences, binary sentiment)
+
+## Performance
+
+- **Throughput:** 99 requests/second
+- **Average latency:** 10.1ms per request
+- **Total predictions logged:** 1,200+
+- **A/B split:** 614 DistilBERT / 604 Logistic Regression (across test run)
 
 ## Tech Stack
 
